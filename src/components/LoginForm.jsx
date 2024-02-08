@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import MovieDetailPage from '../pages/MovieDetailPage.jsx';
+import { Route } from 'react-router-dom';
+import axios from 'axios';
 
 export default function LoginForm({ onLogin }) {
   const [emailValue, setEmailValue] = useState('');
@@ -30,6 +33,14 @@ export default function LoginForm({ onLogin }) {
         onChange={(e) => setPasswordValue(e.target.value)}
       />
       <button type="submit">Log In</button>
+      <Route
+      path='movies/:movieId'
+      element={<MovieDetailPage />}
+      loader={async ({ params }) => {
+        const res = await axios.get(`/api/movies/${params.movieId}`);
+        return { movie: res.data };
+      }}
+      />
     </form>
   );
 }

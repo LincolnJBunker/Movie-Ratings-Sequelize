@@ -1,4 +1,3 @@
-import { over } from 'lodash';
 import { useLoaderData } from 'react-router-dom';
 
 export default function MovieDetailPage() {
