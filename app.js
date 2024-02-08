@@ -14,6 +14,14 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(session({ secret: 'ssshhhhh', saveUninitialized: true, resave: false }));
 
+function loginRequired(req, res, next) {
+    if (!req.session.userId) {
+        res.status(401).json({error: 'Unauthorized'});
+    } else {
+        next()
+    }
+}
+
 //Routes
 app.get(`/api/movies`, async (req, res) => {
     const allMovies = await Movie.findAll();
@@ -23,6 +31,7 @@ app.get(`/api/movies`, async (req, res) => {
 app.post('/api/auth', async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ where: {email: email }});
+
 
     if (user && user.password === password) {
         req.session.userId = user.userId
@@ -58,12 +67,27 @@ app.get('api/ratings', async (req, res) => {
     }
 });
 
-app.post('api/ratings', async (req, res) => {
-    const {  userId } = req.session
+app.post('api/ratings', loginRequired, async (req, res) => {
+    const { userId } = req.session
+    const { movieId, score } = req.body;
 
-    if(!userId) {
-        res.status(401).json({ error: 'Unauthorized '})
-    }
-})
+    const user = await User.findByPk(userId);
+    const rating = await user.createRating({
+        movieId: movieId,
+        score: score
+    });
+    res.json(rating)
+    // if(!userId) {
+    //     res.status(401).json({ error: 'Unauthorized '})
+    // } else {
+    //     const { movieId, score } = req.body;
+
+    //     const user = await User.findByPk(1);
+    //     const rating = await user.createRating({
+    //         movieId: 5,
+    //         score: 5
+    //     })
+    // }
+});
 
 ViteExpress.listen(app, port, () => console.log(`Server is listening on http://localhost:${port}`));
